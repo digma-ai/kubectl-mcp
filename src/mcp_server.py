@@ -41,7 +41,8 @@ if __name__ == "__main__":
 
     port = os.getenv("PORT", args.port)
     host = os.getenv("HOST", args.host)
+    transport = os.getenv("TRANSPORT", args.transport)
 
     mcp = FastMCP("Kubectl Mcp Server", port=port, host=host)
     add_tools(mcp=mcp)
-    mcp.run(transport=args.transport)
+    mcp.run(transport=transport)
