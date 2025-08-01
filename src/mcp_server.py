@@ -2,36 +2,28 @@
 import os
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import Field
 
 from kubectl_process import run_kubectl
 
 
 def add_tools(mcp: FastMCP):
 
-    @mcp.tool()
-    def kubectl(namespace: str, command_args: list[str]) -> str:
-        """
-        Use for running kubectl with any set of arguments
-
-        Args:
-            namespace: The namespace of the deployments
-            command_args: kubectl command line arguments
-        """
+    @mcp.tool(name="kubectl", description="Use for running kubectl with any set of arguments")
+    def kubectl(
+        namespace: str = Field(description="The k8s namespace"),
+        command_args: list[str] = Field(description="kubectl command line arguments"),
+    ) -> str:
         try:
             return run_kubectl([*command_args, "-n", namespace])
         except Exception as ex:
             return str(ex)
 
-    @mcp.tool()
-    def kubectl_apply(namespace: str, yaml_content: str) -> str:
-        """
-        Used to apply a kubernetes yaml
-
-        Args:
-          yaml_content: The yaml file content to apply
-          namespace: The namespace of the deployments
-
-        """
+    @mcp.tool(name="", description="Used to apply a kubernetes yaml")
+    def kubectl_apply(
+        namespace: str = Field(description="The k8s namespace"),
+        yaml_content: str = Field(description="The yaml file content to apply")
+    ) -> str:
         try:
             return run_kubectl(["apply", "-n", namespace, "-f", "-"], stdin=yaml_content)
         except Exception as ex:
