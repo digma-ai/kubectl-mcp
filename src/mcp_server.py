@@ -1,6 +1,7 @@
 ﻿import argparse
 import os
 
+from fastmcp.exceptions import ToolError
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
@@ -17,17 +18,17 @@ def add_tools(mcp: FastMCP):
         try:
             return run_kubectl([*command_args, "-n", namespace])
         except Exception as ex:
-            return str(ex)
+            raise ToolError(ex)
 
     @mcp.tool(name="", description="Used to apply a kubernetes yaml")
     def kubectl_apply(
         namespace: str = Field(description="The k8s namespace"),
-        yaml_content: str = Field(description="The yaml file content to apply")
+        yaml_content: str = Field(description="The yaml file content to apply"),
     ) -> str:
         try:
             return run_kubectl(["apply", "-n", namespace, "-f", "-"], stdin=yaml_content)
         except Exception as ex:
-            return str(ex)
+            raise ToolError(ex)
 
 
 if __name__ == "__main__":
