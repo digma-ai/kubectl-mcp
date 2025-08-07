@@ -30,6 +30,18 @@ def add_tools(mcp: FastMCP):
         except Exception as ex:
             raise ToolError(ex)
 
+    @mcp.tool(name="", description="Used to patch a kubernetes resource")
+    def kubectl_patch(
+        namespace: str = Field(description="The k8s namespace"),
+        resource_type: str = Field(description="The k8s resource type, for example 'deployment'"),
+        resource_name: str = Field(description="The k8s resource name, for example 'my_deployment'"),
+        json_content: str = Field(description="""The json file content to apply. For example: {"spec": {"template": {"spec": {"containers": [{"name": "nginx", "image": "nginx:1.21"}]}}}}"""),
+    ) -> str:
+        try:
+            return run_kubectl(["patch", resource_type, resource_name, "-n", namespace, "--patch", json_content])
+        except Exception as ex:
+            raise ToolError(ex)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
