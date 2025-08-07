@@ -10,7 +10,7 @@ def run_kubectl(command_args: list[str], *, stdin: str = None) -> str:
     try:
         command_args = command_args or []
         command_args = [x.strip() for x in command_args]
-        command_items = [KUBECTL_NAME, *command_args, "--output", "json"]
+        command_items = [KUBECTL_NAME, *command_args]
         result = subprocess.run(args=command_items, input=stdin, text=True, check=True, capture_output=True)
         return result.stdout
     except subprocess.CalledProcessError as e:
