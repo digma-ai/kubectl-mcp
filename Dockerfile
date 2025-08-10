@@ -1,30 +1,35 @@
-﻿FROM python:3.11-slim
+﻿# Dockerfile
+FROM python:3.11-slim
 
-# Set work directory inside the container
+# Versions & env
+ARG KUBECTL_VERSION=v1.33.3
+ARG TARGETARCH=amd64
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PORT=8000 \
+    PYTHONPATH=/app
+
+# System deps
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" -o /usr/local/bin/kubectl && \
+    chmod +x /usr/local/bin/kubectl
+
+# App
 WORKDIR /app
 
-# Install system dependencies (if needed)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential curl\
-    && rm -rf /var/lib/apt/lists/*
-
-# Install kubectl (latest stable version)
-RUN curl -LO "https://dl.k8s.io/release/v1.33.3/bin/linux/amd64/kubectl" \
-    && chmod +x kubectl \
-    && mv kubectl /usr/local/bin
-
-# Install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Python deps
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code into the container
-COPY src .
+COPY ./src ./src
 
-ENV PYTHONPATH=/app \
-    PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+RUN useradd -u 10001 -m appuser && \
+    chown -R appuser:appuser /app
+USER appuser
 
-EXPOSE ${PORT}
-
-# Define the default command to run the app
-CMD ["python", "mcp_server.py"]
+EXPOSE 8000
+CMD ["python", "src/mcp_server.py"]
